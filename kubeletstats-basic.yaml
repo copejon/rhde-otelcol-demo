@@ -1,0 +1,18 @@
+receivers:
+  kubeletstats:
+    auth_type: tls
+    ca_file: /var/lib/microshift/certs/kube-apiserver-to-kubelet-client-signer/ca.crt
+    key_file: /var/lib/microshift/certs/admin-kubeconfig-signer/admin-kubeconfig-client/client.key
+    cert_file: /var/lib/microshift/certs/admin-kubeconfig-signer/admin-kubeconfig-client/client.crt
+    insecure_skip_verify: true
+
+exporters:
+  debug:
+    verbosity: normal
+
+service:
+  pipelines:
+    metrics/kubeletstats/debug:
+      receivers: [ kubeletstats ]
+      exporters: [ debug ]
+
