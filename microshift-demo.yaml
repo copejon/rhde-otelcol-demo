@@ -6,12 +6,14 @@ receivers:
 #    Path: /….
 #  filelog/kube-system:
 #    Path: /….
-
   kubeletstats:
-    auth_type: kubeConfig
+    auth_type: tls
+    ca_file: /var/lib/microshift/certs/kube-apiserver-to-kubelet-client-signer/ca.crt
+    key_file: /var/lib/microshift/certs/admin-kubeconfig-signer/admin-kubeconfig-client/client.key
+    cert_file: /var/lib/microshift/certs/admin-kubeconfig-signer/admin-kubeconfig-client/client.crt
     insecure_skip_verify: true
     collection_interval: 20s
-    endpoint: "dev-el94.lab.home.arpa"
+    endpoint: "dev-el94.lab.home.arpa:10250"
   hostmetrics:
     root_path: /
     collection_interval: 10s
@@ -41,10 +43,12 @@ processors:
     system:
       
 exporters:
-  otlphttp:
-    endpoint: http://localhost:9093
-    compression: none
-    encoding: json
+  otlp:
+    sending_queue:
+      storage: file_storage 
+    endpoint: 192.168.100.194:4317 
+    tls:
+      insecure: true
   debug:
 
 extensions:
@@ -66,11 +70,11 @@ service:
   pipelines:
     metrics/kubeletstats:
       receivers: [kubeletstats]
-      exporters: [otlphttp, debug]
+      exporters: [otlp]
     metrics:
       receivers: [hostmetrics, hostmetrics/disk, hostmetrics/network]
       processors: [resourcedetection/system]
-      exporters: [otlphttp, debug]
+      exporters: [otlp, debug]
     logs:
       receivers: [journald]
-      exporters: [otlphttp, debug]
+      exporters: [otlp, debug]
